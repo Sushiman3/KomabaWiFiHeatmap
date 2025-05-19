@@ -7,15 +7,55 @@ import subprocess
 def get_wifi_rssi():
     """Gets RSSI in dBm on Windows using netsh"""
     try:
-        output = subprocess.check_output("netsh wlan show interfaces", shell=True).decode()
+        # Get the output as bytes first
+        output_bytes = subprocess.check_output(["netsh", "wlan", "show", "interfaces"])
+        
+        # Try different encodings
+        encodings = ['utf-8', 'shift-jis', 'cp932']
+        output = None
+        
+        for encoding in encodings:
+            try:
+                output = output_bytes.decode(encoding)
+                break
+            except UnicodeDecodeError:
+                continue
+                
+        if output is None:
+            print("Error: Could not decode netsh output with any known encoding")
+            return None
+            
+        print("Debug - Full netsh output:")
+        print(output)
+        
+        # Parse the output line by line
         for line in output.splitlines():
-            if "Signal" in line:
-                percent = int(line.split(":")[1].strip().replace("%", ""))
-                # Approximate dBm conversion
-                rssi = (percent / 2) - 100
+            # 日本語環境では "シグナル" を探す
+            if any(keyword in line for keyword in ["シグナル", "Signal", "信号"]):
+                print("Debug - Found signal line:", line)
+                # Extract the percentage value - get all digits
+                digits = ''.join(filter(str.isdigit, line))
+                if not digits:
+                    continue
+                    
+                signal_percent = int(digits)
+                print("Debug - Signal percentage:", signal_percent)
+                
+                # Convert percentage to dBm
+                # Common conversion formula: 
+                # -100 dBm = 0% and -50 dBm = 100%
+                rssi = ((signal_percent / 100.0) * 50) - 100
+                
                 return round(rssi, 2)
+                
+        print("Debug - No signal strength line found in output")
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing netsh command: {e}")
+        print(f"Error output: {e.output if hasattr(e, 'output') else 'No output'}")
     except Exception as e:
-        print("Error getting RSSI:", e)
+        print(f"Error getting RSSI: {e}")
+        import traceback
+        print(traceback.format_exc())
     return None
 
 def get_gps_location():
