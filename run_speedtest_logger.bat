@@ -1,4 +1,4 @@
 @echo off
 echo Running WiFi survey...
-python log_speedtest.py
+python gui_speedtest.py
 pause
