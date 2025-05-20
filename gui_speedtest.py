@@ -2,12 +2,12 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from PIL import Image, ImageTk
-import speedtest
 import csv
 from datetime import datetime
 import os
 import subprocess
 import threading
+import re
 
 # Map image and CSV log file names
 MAP_IMAGE = 'komabamap.png'  # Place your map image in the same folder
@@ -46,12 +46,31 @@ def get_wifi_rssi():
 
 # Function to run a speed test and return download, upload, and ping
 def run_speedtest():
-    s = speedtest.Speedtest()
-    s.get_best_server()
-    download = s.download() / 1e6
-    upload = s.upload() / 1e6
-    ping = s.results.ping
-    return download, upload, ping
+    """Run speedtest-cli via subprocess and parse the results."""
+    import subprocess
+    import re
+    import sys
+    try:
+        # Use python -m speedtest for Windows compatibility
+        result = subprocess.run([sys.executable, "-m", "speedtest", "--simple"], capture_output=True, text=True, check=True)
+        output = result.stdout
+        ping = download = upload = None
+        for line in output.splitlines():
+            if line.startswith("Ping:"):
+                ping = float(re.search(r"([\d.]+)", line).group(1))
+            elif line.startswith("Download:"):
+                download = float(re.search(r"([\d.]+)", line).group(1))
+            elif line.startswith("Upload:"):
+                upload = float(re.search(r"([\d.]+)", line).group(1))
+        if None in (ping, download, upload):
+            raise ValueError("Could not parse speedtest-cli output: " + output)
+        return download, upload, ping
+    except subprocess.CalledProcessError as e:
+        print(f"Error running speedtest-cli: {e}\nOutput: {e.output}\nStderr: {e.stderr}")
+        return 0.0, 0.0, 0.0
+    except Exception as e:
+        print(f"Error running speedtest-cli: {e}")
+        return 0.0, 0.0, 0.0
 
 # Function to log data to CSV file
 def log_to_csv(timestamp, download, upload, ping, rssi, lat, lon, note):
