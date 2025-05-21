@@ -13,3 +13,10 @@ This project aims to collect and visualize WiFi signal strength and network perf
 - 🤖 **Scripted Automation**: Batch or Python-based automated data logging
 
 ---
+## Setup
+1. **Download all the files**
+2. **Install Requirements**: Run "pip install -r requirements.txt" in downloaded directory
+3. **Downlaod Komaba Map Data**:  Run the script("python download_Komabamap.py") to download the Komaba map data (this only needs to be done once)
+4. **Run Logger**: Run the python script or the batch file to measure and log data
+
+---
