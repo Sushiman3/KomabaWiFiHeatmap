@@ -1,4 +1,3 @@
-tkinter
 Pillow
 speedtest-cli
 staticmap
