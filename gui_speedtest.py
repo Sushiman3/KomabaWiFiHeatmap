@@ -10,7 +10,7 @@ import threading
 import re
 
 # Map image and CSV log file names
-MAP_IMAGE = 'komabamap.png'  # Place your map image in the same folder
+MAP_IMAGE = './data/komabamap.png'  # Place your map image in the same folder
 CSV_FILE = 'wifi_survey_log.csv'
 
 # Function to get WiFi RSSI (signal strength) in dBm
